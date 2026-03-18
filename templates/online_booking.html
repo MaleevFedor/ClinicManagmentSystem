@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Выбор специалиста или услуги{% endblock %}
+
+{% block extra_head %}
+<style>
+  .booking-home {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    gap: 2.2rem;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .booking-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    max-width: 520px;
+  }
+
+  .booking-eyebrow {
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6c6c6c;
+    font-weight: 600;
+  }
+
+  .booking-subtitle {
+    margin: 0;
+    color: #4b4b4b;
+    font-size: 1rem;
+  }
+
+  .booking-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.6rem;
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .booking-button {
+    background: #059aee;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 4rem 1rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .booking-button:hover {
+    background: #027fc2;
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  }
+
+  .booking-button:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  }
+
+  .booking-button span {
+    font-size: 0.95rem;
+    font-weight: 500;
+    opacity: 0.9;
+  }
+
+  .booking-hint {
+    background: #f6f9fc;
+    border: 1px solid #e3ebf2;
+    border-radius: 16px;
+    padding: 1rem 1.4rem;
+    color: #5a5a5a;
+    max-width: 520px;
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 480px) {
+    .booking-button {
+      padding: 3rem 0.8rem;
+      font-size: 1.1rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="booking-home">
+    <div class="booking-hero">
+      <div class="booking-eyebrow">Онлайн-запись</div>
+      <h1>Новая запись</h1>
+      <p class="booking-subtitle">
+        Выберите удобный путь — найдите врача по специализации или услугу по названию.
+      </p>
+    </div>
+
+    <div class="booking-buttons">
+      <button class="booking-button" onclick="window.location.href='/book/online/choose_doctor'">
+        👨‍⚕️ Выбрать специалиста
+        <span>По специализации и доступным слотам</span>
+      </button>
+
+      <button class="booking-button" onclick="window.location.href='/book/online/choose_procedure'">
+        💆 Выбрать услугу
+        <span>По названию услуги и свободному времени</span>
+      </button>
+    </div>
+
+    <div class="booking-hint">
+      Подсказка: вы всегда можете вернуться и изменить выбор до подтверждения записи.
+    </div>
+  </div>
+{% endblock %}

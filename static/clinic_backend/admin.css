@@ -1,0 +1,58 @@
+.timetable-widget {
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.timetable-day {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  padding: 4px 8px;
+  font-size: 13px;
+  line-height: 20px;
+  text-decoration: none;
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.timetable-day.is-working {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.timetable-day.is-off {
+  background-color: #adb5bd;
+  color: #212529;
+}
+
+.timetable-day:first-child {
+  border-top-left-radius: 14px;
+  border-bottom-left-radius: 14px;
+}
+
+.timetable-day:last-child {
+  border-right: 0;
+  border-top-right-radius: 14px;
+  border-bottom-right-radius: 14px;
+}
+
+.timetable-day:focus,
+.timetable-day:hover {
+  color: inherit;
+  filter: brightness(0.95);
+  text-decoration: none;
+}
+
+.timetable-services {
+  font-size: 12px;
+}
+
+.timetable-services summary {
+  cursor: pointer;
+}
+
+.timetable-services ul {
+  margin: 6px 0 0 16px;
+  padding: 0;
+}

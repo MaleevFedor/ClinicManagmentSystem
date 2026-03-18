@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+{% load static %}
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>######## — Центр урологии и восстановительной медицины</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="{% static 'clinic_backend/landing.css' %}">
+  <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-top">
+      <p class="hero-tagline">Здоровье начинается здесь: восстановим вашу уверенность!</p>
+      <div class="hero-logo">
+        <img src="{% static 'images/index/logo.png' %}" alt="S.Ventus" class="logo-image">
+      </div>
+      <div class="hero-contacts">
+        <div class="hero-phone">
+          <span>+7(926) ###-##-##</span>
+          <span>###########@mail.ru</span>
+        </div>
+        <a class="hero-button" href="/book/online">Записаться онлайн</a>
+      </div>
+    </div>
+    <nav class="hero-nav">
+      <a href="#about">О НАС</a>
+      <a href="#services">УСЛУГИ</a>
+      <a href="#contacts">КОНТАКТЫ</a>
+    </nav>
+
+    <div class="hero-card">
+      <p class="hero-brand">S.ventus</p>
+      <h1>Центр урологии и восстановительной медицины</h1>
+      <p class="hero-description">
+        Осуществляем функциональную диагностику, исследования
+        и обеспечиваем лечение.
+      </p>
+    </div>
+
+    <div class="hero-actions">
+      <div class="hero-action hero-action--dark">
+        <h3>Запись на прием </h3>
+        <p>Оставьте заявку, мы перезвоним через 5 минут и поможем выбрать удобное время для записи</p>
+      </div>
+      <div class="hero-action hero-action--primary">
+        <h3>Адрес клиники</h3>
+        <p>г.Москва, ул.########## д. # к#</p>
+      </div>
+      <div class="hero-action hero-action--light">
+        <h3>Время работы клиники</h3>
+        <p>Пн-Пт — 8:00-22:00<br>Сб-Вс — 9:00-21:00</p>
+      </div>
+    </div>
+  </header>
+
+  <section class="services" id="services">
+    <h2>Наши услуги</h2>
+    <p class="section-lead">У нас вы найдете все услуги, необходимые для поддержания здоровья вашей семьи</p>
+    <div class="service-grid">
+      {% for procedure in procedures %}
+          <div class="service-card">{{ procedure.name }}</div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="about" id="about">
+    <div class="about-content">
+      <h2>О нас</h2>
+      <p>
+        Добро пожаловать в нашу клинику урологии и восстановительной медицины! Мы рады приветствовать вас
+        в учреждении, где ваше здоровье и благополучие являются нашим приоритетом. Наша команда опытных
+        специалистов предлагает индивидуальный подход к каждому пациенту, сочетая современные методы
+        диагностики и лечения с инновационными методиками восстановительной медицины.
+      </p>
+      <p>
+        В нашей клинике вы найдете комфортную атмосферу, доверительное общение и высокий уровень
+        обслуживания. Мы стремимся не только помочь вам справиться с текущими проблемами, но и
+        восстановить и укрепить ваше здоровье на долгосрочную перспективу.
+      </p>
+      <p>
+        Давайте вместе сделаем первый шаг к вашему выздоровлению и улучшению качества жизни.
+        Мы готовы помочь вам на каждом этапе этого пути!
+      </p>
+    </div>
+    <div class="about-image" aria-hidden="true">
+      <img src="{% static 'images/index/dama.jpg' %}" alt="Специалист клиники" class="about-photo">
+    </div>
+  </section>
+
+  <section class="team">
+    <h2>Наши врачи</h2>
+    <div class="team-grid">
+      {% for employee in employees %}
+          <article class="team-card">
+            <div class="team-photo">
+              {% if employee.image %}
+                <img src="{{ employee.image.url }}"
+                     alt="{{ employee.name }} {{ employee.surname }}"
+                     class="team-photo-image">
+              {% endif %}
+            </div>
+            <h3>{{ employee.first_name }} {{ employee.last_name }} {{ employee.fathers_name }}</h3>
+            <p>{{ employee.description }}</p>
+          </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="cta" style="background-image: url('{% static 'images/index/form.jpg' %}')">
+    <div class="cta-content">
+      <h2>Запишитесь на прием</h2>
+      <p>Оставьте свои контактные данные, и наш менеджер свяжется с вами в течение пяти минут</p>
+      <div class="cta-row">
+        <div class="map-card">
+          <h3>Контакты</h3>
+          <p>+7 (###) ###-##-##</p>
+          <p>#######@mail.ru</p>
+          <p>г.Москва, ул.##### д.###### </p>
+          <div class="map-hours">
+            <p>Пн-Пт — 8:00-22:00</p>
+            <p>Сб-Вс — 9:00-21:00</p>
+          </div>
+        </div>
+        <form class="cta-form" action="{% url 'api_add_call' %}" method="post">
+          {% csrf_token %}
+          <input type="text" name="client_name" placeholder="Ваше имя" aria-label="Ваше имя">
+          <input type="tel" name="client_phone" placeholder="+7 (000) 000-00-00" aria-label="Телефон">
+          <button type="submit">Заказать звонок</button>
+          <div class="cta-divider" aria-hidden="true">
+            <span>или</span>
+          </div>
+          <a class="hero-button-large" href="/book/online">Записаться онлайн</a>
+        </form>
+      </div>
+    </div>
+  </section>
+  <br>
+  <section class="location-preview" id="contacts">
+    <a class="location-preview-link" href="https://yandex.com/maps/" target="_blank" rel="noopener noreferrer" aria-label="Открыть карту клиники в Яндекс Картах">
+      <img src="{% static 'images/index/map.png' %}" alt="Расположение клиники на карте" class="location-preview-image">
+    </a>
+  </section>
+</body>
+</html>

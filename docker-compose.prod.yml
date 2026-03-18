@@ -1,0 +1,81 @@
+services:
+  clinic_db:
+    image: postgres:17
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${SUPERUSER_USERNAME}
+      POSTGRES_PASSWORD: ${SUPERUSER_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  clinic_backend:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - clinic_db
+    environment:
+      DATABASE_ENGINE: ${DATABASE_ENGINE}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USERNAME: ${SUPERUSER_USERNAME}
+      DATABASE_PASSWORD: ${SUPERUSER_PASSWORD}
+      DATABASE_HOST: clinic_db
+      DATABASE_PORT: ${DATABASE_PORT}
+    ports:
+      - "127.0.0.1:8000:8000"
+    command: gunicorn web.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - /opt/clinicweb/data/media:/app/media
+      - /opt/clinicweb/data/static:/app/staticfiles
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    restart: always
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  celery_worker:
+    build: .
+    command: celery -A web worker --loglevel=info
+    depends_on:
+      - rabbitmq
+      - clinic_db
+    environment:
+      DATABASE_ENGINE: ${DATABASE_ENGINE}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USERNAME: ${SUPERUSER_USERNAME}
+
+      DATABASE_PASSWORD: ${SUPERUSER_PASSWORD}
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+
+  celery_beat:
+    build: .
+    command: celery -A web beat --loglevel=info
+    depends_on:
+      - rabbitmq
+      - clinic_db
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  celery_beat_data:

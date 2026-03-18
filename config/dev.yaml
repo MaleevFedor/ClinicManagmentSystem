@@ -1,0 +1,14 @@
+env: "example"
+django:
+  secret_key: "replace-with-strong-secret"
+  debug: false
+  loglevel: info
+  allowed_hosts:
+    - "your-domain.com"
+    - "www.your-domain.com"
+database:
+  name: "clinic_db"
+  user: "clinic_user"
+  password: "change-me"
+  host: "clinic_db"
+  port: 5432

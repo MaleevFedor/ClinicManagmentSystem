@@ -1,0 +1,229 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="{% static 'clinic_backend/add_booking.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid add-booking-page py-3">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h1 class="h3 mb-4">Добавить запись</h1>
+
+      <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="doctor-select">Доктор</label>
+          <select id="doctor-select" class="form-control">
+            <option value="">Выберите доктора</option>
+            {% for doctor in doctors %}
+              <option value="{{ doctor.id }}" {% if selected_doctor and selected_doctor.id == doctor.id %}selected{% endif %}>
+                {{ doctor.last_name }} {{ doctor.first_name }} {{ doctor.fathers_name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group col-md-4">
+          <label for="procedure-select">Процедура</label>
+          <select id="procedure-select" class="form-control" disabled>
+            <option value="">Сначала выберите доктора</option>
+          </select>
+        </div>
+
+        <div class="form-group col-md-4">
+          <label for="datePicker">Дата</label>
+          <input id="datePicker" type="text" class="form-control" placeholder="Выберите дату">
+          <div class="date-quick-btns mt-2">
+            <button id="todayBtn" type="button" class="btn btn-info btn-sm">Сегодня</button>
+            <button id="tomorrowBtn" type="button" class="btn btn-info btn-sm">Завтра</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group col-md-4">
+          <label for="client-name">Имя (необязательно)</label>
+          <input id="client-name" type="text" class="form-control" placeholder="Имя клиента">
+        </div>
+        <div class="form-group col-md-4">
+          <label for="client-phone">Телефон (необязательно)</label>
+          <input id="client-phone" type="text" class="form-control" placeholder="+7 ...">
+        </div>
+        <div class="form-group col-md-4">
+          <label for="client-email">Email (необязательно)</label>
+          <input id="client-email" type="email" class="form-control" placeholder="example@mail.com">
+        </div>
+      </div>
+
+      <div id="slotsContainer"></div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+<script>
+    const proceduresUrl = "{{ procedures_url }}";
+    const slotsUrl = "{{ slots_url }}";
+    const bookingAddUrl = "{{ booking_add_url }}";
+
+    const doctorSelect = document.getElementById("doctor-select");
+    const procedureSelect = document.getElementById("procedure-select");
+    const datePickerEl = document.getElementById("datePicker");
+    const slotsContainer = document.getElementById("slotsContainer");
+    const clientNameEl = document.getElementById("client-name");
+    const clientPhoneEl = document.getElementById("client-phone");
+    const clientEmailEl = document.getElementById("client-email");
+
+    const weekdayNames = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"];
+
+    const fp = flatpickr(datePickerEl, {
+      locale: "ru",
+      dateFormat: "Y-m-d",
+      minDate: "today",
+      weekNumbers: false,
+    });
+
+    document.getElementById("todayBtn").onclick = () => fp.setDate(new Date(), true);
+    document.getElementById("tomorrowBtn").onclick = () => fp.setDate(new Date(Date.now() + 86400000), true);
+
+    const resetProcedures = (placeholder) => {
+      procedureSelect.innerHTML = `<option value="">${placeholder}</option>`;
+      procedureSelect.disabled = true;
+    };
+
+    const showMessage = (message) => {
+      slotsContainer.innerHTML = `<p class="loading mb-0">${message}</p>`;
+    };
+
+    const loadProcedures = async () => {
+      const doctorId = doctorSelect.value;
+      if (!doctorId) {
+        resetProcedures("Сначала выберите доктора");
+        showMessage("Выберите доктора, чтобы увидеть слоты.");
+        return;
+      }
+
+      const response = await fetch(`${proceduresUrl}?doctor_id=${doctorId}`, { credentials: "same-origin" });
+      if (!response.ok) {
+        resetProcedures("Не удалось загрузить процедуры");
+        return;
+      }
+
+      const data = await response.json();
+      const procedures = data.procedures || [];
+      if (!procedures.length) {
+        resetProcedures("У доктора нет доступных процедур");
+        showMessage("Нет процедур для выбранного доктора.");
+        return;
+      }
+
+      procedureSelect.innerHTML = '<option value="">Выберите процедуру</option>';
+      procedures.forEach((procedure) => {
+        const option = document.createElement("option");
+        option.value = procedure.id;
+        option.textContent = procedure.name;
+        procedureSelect.appendChild(option);
+      });
+      procedureSelect.disabled = false;
+      showMessage("Выберите дату и процедуру.");
+    };
+
+    const buildAdminLink = (doctorId, procedureId, date, time) => {
+      const params = new URLSearchParams({
+        doctor_id: doctorId,
+        procedure_id: procedureId,
+        date,
+        time: `${time}:00`,
+      });
+      if (clientNameEl.value.trim()) params.set("name", clientNameEl.value.trim());
+      if (clientPhoneEl.value.trim()) params.set("phone", clientPhoneEl.value.trim());
+      if (clientEmailEl.value.trim()) params.set("email", clientEmailEl.value.trim());
+      return `${bookingAddUrl}?${params.toString()}`;
+    };
+
+    const renderSlots = (data) => {
+      const slots = data.slots || [];
+      const weekday = weekdayNames[data.weekday] || "День";
+      slotsContainer.innerHTML = `
+        <div class="service-block">
+          <div class="service-name">${data.procedure.name}</div>
+          <p class="text-muted mb-3">${data.doctor.name} — ${weekday}, ${data.date_label}</p>
+          <div class="slots-grid" id="slots-grid"></div>
+        </div>
+      `;
+
+      const grid = document.getElementById("slots-grid");
+      if (!slots.length) {
+        grid.innerHTML = '<p class="mb-0"><strong>Нет слотов на выбранную дату</strong></p>';
+        return;
+      }
+
+      slots.forEach((slot) => {
+        if (slot.is_available) {
+          const link = document.createElement("a");
+          link.className = "slot";
+          link.href = buildAdminLink(data.doctor.id, data.procedure.id, data.date, slot.time);
+          link.textContent = slot.time;
+          link.addEventListener("click", (event) => {
+            const confirmed = window.confirm(`Подтвердить переход к созданию записи?\n\nДоктор: ${data.doctor.name}\nПроцедура: ${data.procedure.name}\nДата: ${data.date_label}\nВремя: ${slot.time}`);
+            if (!confirmed) {
+              event.preventDefault();
+            }
+          });
+          grid.appendChild(link);
+        } else {
+          const span = document.createElement("span");
+          span.className = "slot inactive";
+          span.textContent = slot.time;
+          grid.appendChild(span);
+        }
+      });
+    };
+
+    const loadSlots = async () => {
+      const doctorId = doctorSelect.value;
+      const procedureId = procedureSelect.value;
+      const dateValue = datePickerEl.value;
+      if (!doctorId || !procedureId || !dateValue) {
+        return;
+      }
+
+      const jsweekday = new Date(dateValue).getDay();
+      const weekday = (jsweekday + 6) % 7;
+      showMessage("Загрузка...");
+
+      const response = await fetch(
+        `${slotsUrl}?doctor_id=${doctorId}&procedure_id=${procedureId}&date=${dateValue}&weekday=${weekday}`,
+        { credentials: "same-origin" },
+      );
+
+      if (!response.ok) {
+        showMessage("Не удалось загрузить слоты.");
+        return;
+      }
+
+      renderSlots(await response.json());
+    };
+
+    doctorSelect.addEventListener("change", async () => {
+      await loadProcedures();
+      if (datePickerEl.value && procedureSelect.value) {
+        loadSlots();
+      }
+    });
+
+    procedureSelect.addEventListener("change", loadSlots);
+    datePickerEl.addEventListener("change", loadSlots);
+
+    if (doctorSelect.value) {
+      loadProcedures();
+    } else {
+      showMessage("Выберите доктора, чтобы увидеть слоты.");
+    }
+</script>
+
+{% endblock %}

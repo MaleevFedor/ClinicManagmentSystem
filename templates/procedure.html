@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+{% block title %}{{ procedure.name }}{% endblock %}
+
+{% block extra_head %}
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<style>
+/* --- Стиль кнопок Сегодня/Завтра --- */
+.date-quick-btns {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.date-quick-btns button {
+  background: #059aee;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.date-quick-btns button:hover {
+  background: #027fc2;
+}
+
+/* flatpickr кастомизации */
+.flatpickr-calendar {
+  border-radius: 12px;
+  box-shadow: 0 10px 35px rgba(0,0,0,0.25);
+  font-size: 14px;
+}
+
+.flatpickr-day.today {
+  background: #059aee !important;
+  color: white !important;
+  border-radius: 8px;
+}
+
+.flatpickr-day.selected {
+  background: #027fc2 !important;
+  color: #fff !important;
+  border-radius: 8px;
+}
+
+.flatpickr-day.flatpickr-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* --- Секция каждой услуги --- */
+.service-block {
+  margin-top: 25px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.service-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+/* --- Сетка слотов --- */
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.slot {
+  padding: 12px 10px;
+  text-align: center;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #A7FFA4;
+  border: 1px solid #7CFF72;
+  transition: 0.15s;
+}
+
+.slot:hover {
+  background: #91FD8A;
+}
+
+.slot.inactive {
+  background: #f0f0f0;
+  border-color: #ccc;
+  color: #888;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.loading {
+  color: #666;
+}
+
+
+.doctor-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.6rem;
+  text-align: center;
+  margin-bottom: 1.4rem;
+}
+
+.procedure-subtitle {
+  margin: 0;
+  color: #4c4c4c;
+}
+
+.doctor-header img {
+  width: 60%;
+}
+.doctor-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 12px;
+}
+.service-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.date-panel {
+  background: #f6f9fc;
+  border: 1px solid #e3ebf2;
+  border-radius: 16px;
+  padding: 1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  max-width: 340px;
+}
+
+.section-title {
+  margin-bottom: 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="doctor-header">
+  <h1>{{ procedure.name }}</h1>
+  <p class="procedure-subtitle">Выберите дату, чтобы увидеть доступных специалистов.</p>
+</div>
+
+<h2 class="section-title">Выбор даты</h2>
+
+<div class="date-panel">
+  <!-- Поле даты -->
+  <input type="text" id="datePicker" placeholder="Выберите дату" style="
+    padding: 12px 15px;
+    width: 220px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+  ">
+
+  <div class="date-quick-btns">
+    <button id="todayBtn">Сегодня</button>
+    <button id="tomorrowBtn">Завтра</button>
+  </div>
+</div>
+
+<!-- Тут будут услуги и сетки слотов -->
+<div id="servicesContainer"></div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+
+<script>
+
+/* ------------ ЭЛЕМЕНТЫ ------------ */
+const datePickerEl = document.getElementById("datePicker");
+const servicesContainer = document.getElementById("servicesContainer");
+
+/* ------------ ИНИЦИАЛИЗАЦИЯ FLATPICKR ------------- */
+const fp = flatpickr(datePickerEl, {
+    locale: "ru",
+    dateFormat: "Y-m-d",
+    minDate: "today",
+    weekNumbers: false,
+    firstDayOfWeek: 1,       // <-- неделя начинается с понедельника
+});
+
+/* ------------ КНОПКИ СЕГОДНЯ / ЗАВТРА ------------- */
+document.getElementById("todayBtn").onclick = () => {
+    fp.setDate(new Date(), true);
+};
+
+document.getElementById("tomorrowBtn").onclick = () => {
+    const tomorrow = new Date(Date.now() + 86400000);
+    fp.setDate(tomorrow, true);
+};
+
+/* ------------ ЗАГРУЗКА СЛОТОВ ДЛЯ ВСЕХ УСЛУГ ------------ */
+datePickerEl.addEventListener("change", async (e) => {
+    const date = e.target.value;
+    if (!date) return;
+
+    const jsweekday = new Date(date).getDay();
+    const weekday = (jsweekday + 6) % 7;
+
+    servicesContainer.innerHTML = `<p class="loading">Загрузка...</p>`;
+
+    try {
+        const response = await fetch(
+            `/api/procedure/{{ procedure.id }}/slots/?date=${date}&weekday=${weekday}`
+        );
+
+        if (!response.ok) throw new Error("Ошибка загрузки");
+        const data = await response.json();
+
+        servicesContainer.innerHTML = "";
+
+        if (!data.services || data.services.length === 0) {
+            servicesContainer.innerHTML = `<p><strong>Нет доступных услуг</strong></p>`;
+            return;
+        }
+
+        /* ====== Отрисовка каждой услуги ====== */
+        data.services.forEach((doctor) => {
+            const block = document.createElement("div");
+            block.classList.add("service-block");
+
+            block.innerHTML = `
+                <div class="service-header">
+                    <img class="doctor-avatar" src="${doctor.picture}" alt="doctor">
+                    <div class="service-name">${doctor.name}</div>
+                </div>
+                <div class="slots-grid"></div>
+            `;
+
+            const grid = block.querySelector(".slots-grid");
+
+            /* ---- Если слотов нет ---- */
+            if (!doctor.slots || doctor.slots.length === 0) {
+                grid.innerHTML = `<p class="no-slots">Нет доступных окон</p>`;
+                servicesContainer.appendChild(block);
+                return;
+            }
+
+            /* ---- Отрисовка слотов ---- */
+            doctor.slots.forEach((slot) => {
+                const timeStr = new Date(slot[0]).toLocaleTimeString("ru-RU", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false
+                });
+
+                const div = document.createElement("div");
+                div.classList.add("slot");
+                div.textContent = timeStr;
+
+                if (!slot[1]) {
+                    div.classList.add("inactive");
+                } else {
+                    div.onclick = () => {
+                        const url =
+                            `/book/online/identification/` +
+                            `?doctor=${encodeURIComponent(doctor.id)}` +
+                            `&service=${encodeURIComponent("{{ procedure.id }}")}` +
+                            `&date=${encodeURIComponent(date)}` +
+                            `&time=${encodeURIComponent(timeStr)}`;
+
+                        window.location.href = url;
+                    };
+                }
+
+                grid.appendChild(div);
+            });
+
+            servicesContainer.appendChild(block);
+        });
+
+    } catch (err) {
+        servicesContainer.innerHTML =
+            `<p style="color:red; font-weight:600">Ошибка: ${err.message}</p>`;
+    }
+});
+</script>
+{% endblock %}

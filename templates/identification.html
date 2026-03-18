@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% block title %}Подтверждение записи{% endblock %}
+
+{% block content %}
+<div class="confirm-wrapper">
+
+    <h1 class="page-title">Подтверждение записи</h1>
+
+    <div class="booking-card">
+        <div class="booking-title">Детали записи</div>
+        <div id="bookingInfo" class="booking-info"></div>
+    </div>
+
+    <form id="identForm" class="ident-form">
+        <div class="form-group">
+            <label for="clientName">Имя</label>
+            <input type="text" id="clientName" required placeholder="Введите ваше имя">
+        </div>
+
+        <div class="form-group">
+            <label for="clientEmail">Email</label>
+            <input type="email" id="clientEmail" required placeholder="Введите ваш email">
+        </div>
+
+        <div class="form-group consent-group" id="consentGroup">
+            <label for="personalDataConsent" class="consent-label">
+                <input type="checkbox" id="personalDataConsent" required>
+                <span>Я принимаю <a href="/media/documents/privacy_policy.pdf" target="_blank" rel="noopener noreferrer">условия обработки персональных данных</a></span>
+            </label>
+            <p id="consentError" class="consent-error-text" aria-live="polite">Чтобы продолжить, подтвердите согласие на обработку персональных данных.</p>
+        </div>
+
+        <button type="submit" id="confirmBookingBtn" class="btn-primary" aria-disabled="true">Подтвердить запись</button>
+    </form>
+
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+/* --- контейнер --- */
+.confirm-wrapper {
+    max-width: 520px;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+/* --- заголовок --- */
+.page-title {
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 28px;
+    color: #1e1e1e;
+    font-weight: 600;
+}
+
+/* --- карточка информации --- */
+.booking-card {
+    background: #f6f7f9;
+    padding: 18px 22px;
+    border-radius: 14px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    margin-bottom: 25px;
+    font-size: 20px;
+    border: 1px solid #e1e4e8;
+}
+
+.booking-title {
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #6a6a6a;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.booking-info p {
+    margin: 6px 0;
+}
+
+/* --- форма --- */
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #333;
+}
+
+.ident-form input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #cfcfcf;
+    font-size: 15px;
+    transition: 0.2s;
+}
+
+.ident-form input:focus {
+    border-color: #059aee;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(5,154,238,0.15);
+}
+
+.consent-group {
+    margin-top: -6px;
+}
+
+.consent-label {
+    display: flex !important;
+    align-items: flex-start;
+    gap: 10px;
+    font-weight: 400 !important;
+    line-height: 1.35;
+    margin-bottom: 0 !important;
+}
+
+.consent-label input[type="checkbox"] {
+    width: auto;
+    margin-top: 3px;
+}
+
+.consent-group.consent-error {
+    padding: 10px;
+    border: 1px solid #e04646;
+    border-radius: 10px;
+    background: #fff2f2;
+}
+
+.consent-error-text {
+    display: none;
+    margin: 8px 0 0 28px;
+    font-size: 0.9rem;
+    color: #c52222;
+}
+
+.consent-group.consent-error .consent-error-text {
+    display: block;
+}
+
+.btn-primary[aria-disabled="true"] {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* --- кнопка --- */
+.btn-primary {
+    width: 100%;
+    padding: 12px 16px;
+    background: #059aee;
+    border: none;
+    color: white;
+    font-size: 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-primary:hover {
+    background: #027fc2;
+}
+
+.form-note {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #5a5a5a;
+    margin: 12px 0 0;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+    function formatRuDate(dateStr) {
+  const months = [
+    "января", "февраля", "марта", "апреля", "мая", "июня",
+    "июля", "августа", "сентября", "октября", "ноября", "декабря"
+  ];
+
+  const [year, month, day] = dateStr.split("-");
+  return `${Number(day)} ${months[Number(month) - 1]} ${year}`;
+}
+
+/* ---- читаем csrf ---- */
+const csrftoken = document.cookie.split("; ")
+  .find(row => row.startsWith("csrftoken="))
+  ?.split("=")[1] || "";
+
+/* ---- URL параметры ---- */
+const params = new URLSearchParams(window.location.search);
+
+/* ---- отображение карточки ---- */
+document.getElementById("bookingInfo").innerHTML = `
+    <p><b>Доктор:</b> {{ doctor.first_name }} {{ doctor.last_name }}</p>
+    <p><b>Услуга:</b> {{ procedure.name }}</p>
+    <p><b>Дата:</b> ${formatRuDate(params.get("date"))}</p>
+    <p><b>Время:</b> ${params.get("time")}</p>
+`;
+
+/* ---- отправка JSON ---- */
+const consentCheckbox = document.getElementById("personalDataConsent");
+const consentGroup = document.getElementById("consentGroup");
+const confirmBookingBtn = document.getElementById("confirmBookingBtn");
+
+function updateConfirmButtonState() {
+    const consentAccepted = consentCheckbox.checked;
+    confirmBookingBtn.setAttribute("aria-disabled", String(!consentAccepted));
+
+    if (consentAccepted) {
+        consentGroup.classList.remove("consent-error");
+    }
+}
+
+updateConfirmButtonState();
+
+consentCheckbox.addEventListener("change", updateConfirmButtonState);
+
+confirmBookingBtn.addEventListener("click", (e) => {
+    if (!consentCheckbox.checked) {
+        e.preventDefault();
+        consentGroup.classList.add("consent-error");
+    }
+});
+
+document.getElementById("identForm").onsubmit = async (e) => {
+    e.preventDefault();
+
+    if (!consentCheckbox.checked) {
+        consentGroup.classList.add("consent-error");
+        return;
+    }
+
+    const payload = {
+        doctor: params.get("doctor"),
+        service: params.get("service"),
+        date: params.get("date"),
+        time: params.get("time"),
+        client_name: document.getElementById("clientName").value,
+        client_email: document.getElementById("clientEmail").value
+    };
+
+    const resp = await fetch(`/api/booking/add/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken
+        },
+        body: JSON.stringify(payload)
+    });
+
+    const data = await resp.json();
+
+    if (data.redirect_url) {
+        window.location.href = data.redirect_url;
+    } else if (data.error) {
+        alert("Ошибка: " + data.error);
+    }
+};
+</script>
+{% endblock %}

@@ -1,0 +1,68 @@
+.add-booking-page {
+  max-width: 1200px;
+}
+
+#doctor-select.is-locked {
+  background: #e9ecef;
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+.flatpickr-calendar {
+  border-radius: 12px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+  font-size: 14px;
+}
+
+.flatpickr-day.today {
+  background: #059aee !important;
+  color: #fff !important;
+  border-radius: 8px;
+}
+
+.flatpickr-day.selected {
+  background: #027fc2 !important;
+  color: #fff !important;
+  border-radius: 8px;
+}
+
+.service-block {
+  margin-top: 20px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e5e5;
+}
+
+.service-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.slots-grid {
+  display: block;
+  line-height: 1.8;
+}
+
+.slot {
+  display: inline-block;
+  margin-right: 16px;
+  margin-bottom: 12px;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0b66c3;
+  text-decoration: underline;
+}
+
+.slot:hover {
+  color: #084c90;
+}
+
+.slot.inactive {
+  color: #8a8a8a;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.loading {
+  color: #666;
+}

@@ -1,0 +1,172 @@
+.overview {
+  width: 100%;
+  margin: 0;
+  padding: 24px;
+}
+
+.overview__title {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: #1f1f1f;
+}
+
+.overview__divider {
+  height: 2px;
+  background: #e2e5ea;
+  margin-bottom: 24px;
+}
+
+.overview__list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.overview-card {
+  background: #d9dadb;
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.overview-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.overview-card__title {
+  font-weight: 700;
+  color: #1b1b1b;
+  font-size: 26px;
+}
+
+.overview-card__time {
+  font-weight: 600;
+  color: #1b1b1b;
+  font-size: 32px;
+}
+
+.overview-card__date {
+  font-size: 13px;
+  color: #5d6673;
+}
+
+.overview-card__doctor,
+.overview-card__procedure {
+  font-size: 14px;
+  color: #2f3640;
+}
+
+.overview-card__edit {
+  margin-top: 8px;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #cfd4da;
+  color: #1f1f1f;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.overview-card__edit:hover {
+  background: #bfc5cd;
+  color: #1f1f1f;
+}
+
+.overview-card--call {
+  background: #f0f1f3;
+}
+
+.call-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.call-status--done {
+  background: #b9f6ca;
+  color: #1b5e20;
+}
+
+.call-status--open {
+  background: #ffcdd2;
+  color: #b71c1c;
+}
+
+.call-actions {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.call-actions__button {
+  border: none;
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.call-actions__button--complete {
+  background: #7ed957;
+  color: #0c2c00;
+}
+
+.call-actions__button--complete:hover {
+  background: #6ccf43;
+}
+
+.call-actions__button--book {
+  background: #cfd4da;
+  color: #1f1f1f;
+}
+
+.call-actions__button--book:hover {
+  background: #bfc5cd;
+  color: #1f1f1f;
+}
+
+.overview__more {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.overview__more-button {
+  display: inline-block;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: #e2e5ea;
+  color: #1f1f1f;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.overview__more-button:hover {
+  background: #d2d6dc;
+  color: #1f1f1f;
+}
+
+.overview__empty {
+  padding: 16px 0;
+  color: #7a808a;
+}

@@ -1,0 +1,203 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'clinic_backend/overview.css' %}">
+{% endblock %}
+
+{% block content %}
+  <div class="overview">
+    {% if show_calls %}
+      <h1 class="overview__title">Звонки</h1>
+      <div class="overview__divider"></div>
+      <div class="overview__list" id="calls-list">
+        {% if calls %}
+          {% for call in calls %}
+            <div class="overview-card overview-card--call" data-call-id="{{ call.id }}" data-call-added="{{ call.added|date:'c' }}" data-call-status="{{ call.status }}">
+              <div class="overview-card__header">
+                <div class="overview-card__title">{{ call.phone_number }}</div>
+                {% if call.status == 1 %}
+                  <span class="call-status call-status--done">Выполнено</span>
+                {% else %}
+                  <span class="call-status call-status--open">Открытый</span>
+                {% endif %}
+              </div>
+              <div class="overview-card__date call-elapsed">Прошло: {{ call.added|timesince }} назад</div>
+              <div class="call-actions">
+                <button class="call-actions__button call-actions__button--complete" type="button">Выполнено</button>
+                <a class="call-actions__button call-actions__button--book" href="/admin/add-booking" target="_blank">Записать</a>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="overview__empty">Звонков пока нет.</div>
+        {% endif %}
+      </div>
+    {% endif %}
+    <h1 class="overview__title">Записи</h1>
+    <div class="overview__divider"></div>
+    <div class="overview__list">
+      {% if bookings %}
+        {% for booking in bookings %}
+          <div class="overview-card">
+            <div class="overview-card__header">
+              <div class="overview-card__title">{{ booking.name }}</div>
+              <div class="overview-card__time">{{ booking.time|time:"H:i" }}</div>
+            </div>
+            <div class="overview-card__date">{{ booking.date|date:"d.m.Y" }}</div>
+            <div class="overview-card__doctor">{{ booking.doctor_id.build_username }}</div>
+            <div class="overview-card__procedure">{{ booking.procedure_id.name }}</div>
+            {% if show_edit_button %}
+              <a class="overview-card__edit" href="{% url 'admin:clinic_backend_booking_change' booking.id %}">
+                <span class="overview-card__edit-icon">✏️</span>
+                <span class="overview-card__edit-text">Редактировать</span>
+              </a>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="overview__empty">Записей пока нет.</div>
+      {% endif %}
+    </div>
+    {% if has_more %}
+      <div class="overview__more">
+        <a class="overview__more-button" href="?limit={{ next_limit }}">Загрузить ещё 20 записей</a>
+      </div>
+    {% endif %}
+  </div>
+  {% if show_calls %}
+    <script>
+      const callsList = document.getElementById("calls-list");
+      const callsUrl = "{% url 'admin:overview_calls' %}";
+      const completeUrlTemplate = "{% url 'admin:overview_call_complete' 0 %}";
+      const csrfToken = (() => {
+        const name = "csrftoken=";
+        const cookies = document.cookie.split(";").map((cookie) => cookie.trim());
+        for (const cookie of cookies) {
+          if (cookie.startsWith(name)) {
+            return decodeURIComponent(cookie.slice(name.length));
+          }
+        }
+        return "";
+      })();
+
+      const formatElapsed = (added) => {
+        const diffMs = Date.now() - added.getTime();
+        if (diffMs < 0) {
+          return "только что";
+        }
+        const minutes = Math.floor(diffMs / 60000);
+        if (minutes < 60) {
+          return `${minutes} мин назад`;
+        }
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+        if (remainingMinutes === 0) {
+          return `${hours} ч назад`;
+        }
+        return `${hours} ч ${remainingMinutes} мин назад`;
+      };
+
+      const renderCalls = (calls) => {
+        if (!callsList) {
+          return;
+        }
+        callsList.innerHTML = "";
+        if (!calls.length) {
+          callsList.innerHTML = '<div class="overview__empty">Звонков пока нет.</div>';
+          return;
+        }
+        calls.forEach((call) => {
+          const card = document.createElement("div");
+          card.className = "overview-card overview-card--call";
+          card.dataset.callId = call.id;
+          card.dataset.callAdded = call.added;
+          card.dataset.callStatus = call.status;
+
+          const statusClass = call.status === 1 ? "call-status--done" : "call-status--open";
+          const statusText = call.status === 1 ? "Выполнено" : "Открытый";
+          const addedDate = new Date(call.added);
+
+          card.innerHTML = `
+            <div class="overview-card__header">
+              <div class="overview-card__title">${call.phone_number}</div>
+              <span class="call-status ${statusClass}">${statusText}</span>
+            </div>
+            <div class="overview-card__date call-elapsed">Прошло: ${formatElapsed(addedDate)}</div>
+            <div class="call-actions">
+              <button class="call-actions__button call-actions__button--complete" type="button">Выполнено</button>
+              <a class="call-actions__button call-actions__button--book" href="/book/online">Записать</a>
+            </div>
+          `;
+          callsList.appendChild(card);
+        });
+      };
+
+      const fetchCalls = async () => {
+        try {
+          const response = await fetch(callsUrl, { credentials: "same-origin" });
+          if (!response.ok) {
+            return;
+          }
+          const data = await response.json();
+          renderCalls(data.calls || []);
+        } catch (error) {
+          console.warn("Failed to fetch calls", error);
+        }
+      };
+
+      const updateElapsedTimes = () => {
+        if (!callsList) {
+          return;
+        }
+        callsList.querySelectorAll(".overview-card--call").forEach((card) => {
+          const added = card.dataset.callAdded;
+          const elapsedEl = card.querySelector(".call-elapsed");
+          if (!added || !elapsedEl) {
+            return;
+          }
+          const addedDate = new Date(added);
+          elapsedEl.textContent = `Прошло: ${formatElapsed(addedDate)}`;
+        });
+      };
+
+      const handleComplete = async (event) => {
+        const button = event.target.closest(".call-actions__button--complete");
+        if (!button) {
+          return;
+        }
+        const card = button.closest(".overview-card--call");
+        if (!card) {
+          return;
+        }
+        const callId = card.dataset.callId;
+        if (!callId) {
+          return;
+        }
+        const completeUrl = completeUrlTemplate.replace("/0/", `/${callId}/`);
+        try {
+          const response = await fetch(completeUrl, {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": csrfToken,
+            },
+            credentials: "same-origin",
+          });
+          if (response.ok) {
+            fetchCalls();
+          }
+        } catch (error) {
+          console.warn("Failed to complete call", error);
+        }
+      };
+
+      if (callsList) {
+        callsList.addEventListener("click", handleComplete);
+        fetchCalls();
+        setInterval(fetchCalls, 5000);
+        setInterval(updateElapsedTimes, 60000);
+      }
+    </script>
+  {% endif %}
+{% endblock %}

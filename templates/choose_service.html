@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Выбор услуги{% endblock %}
+
+{% block extra_head %}
+<style>
+  .service-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-top: 1rem;
+  }
+
+  .service-header {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .service-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .service-subtitle {
+    margin: 0;
+    color: #4e4e4e;
+    font-size: 0.98rem;
+  }
+
+  .service-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.2rem;
+    width: 100%;
+  }
+
+  .service-card {
+    background: #f7f7f7;
+    border-radius: 16px;
+    padding: 1.8rem 1.2rem;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border: 1px solid #e5e5e5;
+    cursor: pointer;
+    height: 160px;
+
+    transition: 0.25s ease;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.07);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.6rem;
+  }
+
+  .service-card:hover {
+    background: #059aee;
+    color: white;
+    border-color: #059aee;
+    transform: translateY(-4px);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.12);
+  }
+
+  .service-card:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+
+  .service-hint {
+    font-size: 0.9rem;
+    color: inherit;
+    opacity: 0.8;
+    font-weight: 500;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="service-page">
+  <div class="service-header">
+    <h1 class="service-title">Выберите услугу</h1>
+    <p class="service-subtitle">
+      Показаны доступные направления — нажмите, чтобы перейти к выбору времени.
+    </p>
+  </div>
+
+  <div class="service-grid">
+    {% for service in services %}
+      <div class="service-card"
+           onclick="window.location.href='/book/online/procedure/{{ service.id }}'">
+        <div>{{ service.name }}</div>
+        <div class="service-hint">Открыть расписание</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
