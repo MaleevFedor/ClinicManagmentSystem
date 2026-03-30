@@ -17,7 +17,7 @@ Full-stack web application for managing clinic operations, including appointment
 ## 🌐 Live Demo
 Production deployment: https://sventus.ru  
 ![Status](https://img.shields.io/uptimerobot/status/m802580683-77de9198c11e8b5388f655e5?label=live%20demo)
-![Uptime](https://img.shields.io/uptimerobot/ratio/m802580683-77de9198c11e8b5388f655e5)
+
 
 ## 🏗️ Architecture
 
